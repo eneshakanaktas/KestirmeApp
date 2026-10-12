@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "1051175669638",
+    "project_id": "kestirme-a5b5d",
+    "storage_bucket": "kestirme-a5b5d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051175669638:android:231fa7439dafbee762a607",
+        "android_client_info": {
+          "package_name": "com.example.berber_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtmRiJebmMvujhXed7YDi6EN14YbEzd1s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051175669638:android:2906080a1d47cb0262a607",
+        "android_client_info": {
+          "package_name": "com.example.kestirme"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtmRiJebmMvujhXed7YDi6EN14YbEzd1s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051175669638:android:2184652b8876d61262a607",
+        "android_client_info": {
+          "package_name": "com.example.uygulama"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtmRiJebmMvujhXed7YDi6EN14YbEzd1s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

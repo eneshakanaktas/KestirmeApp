@@ -1,0 +1,279 @@
+﻿Compiling lib\main.dart for the Web...                          
+flutter : Wasm dry ru
+n succeeded. Consider
+ building and testing
+ your application wit
+h the `--wasm` flag. 
+See docs for more inf
+o: https://docs.flutt
+er.dev/platform-integ
+ration/web/wasm
+At line:1 char:1
++ flutter build web -
+-debug 2>&1 | Out-Fil
+e -FilePath build_out
+put.txt  ...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Wasm dr   
+ y run su...ratio    
+n/web/wasm:Strin    g
+) [], RemoteExc    ep
+tion
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+Use --no-wasm-dry-run
+ to disable these war
+nings.
+Target dart2js failed
+: ProcessException: P
+rocess exited abnorma
+lly with exit code 1:
+lib/pages/customer_ho
+me_page.dart:31:37:
+Error: Can't find ')'
+ to match '('.
+    return AnimatedPr
+emiumBackground(
+                     
+               ^
+lib/theme/premium_the
+me.dart:199:16:
+Error: The argument t
+ype 'CardTheme' can't
+ be assigned to the p
+arameter type 'CardTh
+emeData?'.
+ - 'CardTheme' is fro
+m 'package:flutter/sr
+c/material/card_theme
+.dart' ('/C:/src/flut
+ter/packages/flutter/
+lib/src/material/card
+_theme.dart').
+ - 'CardThemeData' is
+ from 'package:flutte
+r/src/material/card_t
+heme.dart' ('/C:/src/
+flutter/packages/flut
+ter/lib/src/material/
+card_theme.dart').
+    cardTheme: CardTh
+eme(
+               ^
+lib/theme/premium_the
+me.dart:336:18:
+Error: The argument t
+ype 'DialogTheme' can
+'t be assigned to the
+ parameter type 'Dial
+ogThemeData?'.
+ - 'DialogTheme' is f
+rom 'package:flutter/
+src/material/dialog_t
+heme.dart' ('/C:/src/
+flutter/packages/flut
+ter/lib/src/material/
+dialog_theme.dart').
+ - 'DialogThemeData' 
+is from 'package:flut
+ter/src/material/dial
+og_theme.dart' ('/C:/
+src/flutter/packages/
+flutter/lib/src/mater
+ial/dialog_theme.dart
+').
+    dialogTheme: Dial
+ogTheme(
+                 ^
+Error: Compilation fa
+iled.
+  Command: C:\src\flu
+tter\bin\cache\dart-s
+dk\bin\dart.exe compi
+le js --platform-bina
+ries=C:\src\flutter\b
+in\cache\flutter_web_
+sdk\kernel --invoker=
+flutter_tool -DFLUTTE
+R_VERSION=3.38.5 -DFL
+UTTER_CHANNEL=stable 
+-DFLUTTER_GIT_URL=htt
+ps://github.com/flutt
+er/flutter.git -DFLUT
+TER_FRAMEWORK_REVISIO
+N=f6ff1529fd -DFLUTTE
+R_ENGINE_REVISION=152
+7ae0ec5 -DFLUTTER_DAR
+T_VERSION=3.10.4 -DFL
+UTTER_WEB_USE_SKIA=tr
+ue -DFLUTTER_WEB_USE_
+SKWASM=false -DFLUTTE
+R_WEB_CANVASKIT_URL=h
+ttps://www.gstatic.co
+m/flutter-canvaskit/1
+527ae0ec577a4ef50e65f
+6fefcfc1326707d9bf/ -
+-native-null-assertio
+ns --no-source-maps -
+-enable-asserts -O1 -
+-no-minify -o C:\User
+s\ragip\source\flutte
+r\kestirmeapp\.dart_t
+ool\flutter_build\cf4
+87e438d6351ec1fbd589b
+cccf72c4\app.dill --p
+ackages=C:\Users\ragi
+p\source\flutter\kest
+irmeapp\.dart_tool\pa
+ckage_config.json --c
+fe-only C:\Users\ragi
+p\source\flutter\kest
+irmeapp\.dart_tool\fl
+utter_build\cf487e438
+d6351ec1fbd589bcccf72
+c4\main.dart
+#0      RunResult.thr
+owException (package:
+flutter_tools/src/bas
+e/process.dart:153:5)
+#1      _DefaultProce
+ssUtils.run (package:
+flutter_tools/src/bas
+e/process.dart:379:19
+)
+<asynchronous suspens
+ion>
+#2      Dart2JSTarget
+.build (package:flutt
+er_tools/src/build_sy
+stem/targets/web.dart
+:207:5)
+<asynchronous suspens
+ion>
+#3      _BuildInstanc
+e._invokeInternal (pa
+ckage:flutter_tools/s
+rc/build_system/build
+_system.dart:895:9)
+<asynchronous suspens
+ion>
+#4      Future.wait.<
+anonymous closure> (d
+art:async/future.dart
+:546:21)
+<asynchronous suspens
+ion>
+#5      _BuildInstanc
+e.invokeTarget (packa
+ge:flutter_tools/src/
+build_system/build_sy
+stem.dart:833:32)
+<asynchronous suspens
+ion>
+#6      Future.wait.<
+anonymous closure> (d
+art:async/future.dart
+:546:21)
+<asynchronous suspens
+ion>
+#7      _BuildInstanc
+e.invokeTarget (packa
+ge:flutter_tools/src/
+build_system/build_sy
+stem.dart:833:32)
+<asynchronous suspens
+ion>
+#8      FlutterBuildS
+ystem.build (package:
+flutter_tools/src/bui
+ld_system/build_syste
+m.dart:653:16)
+<asynchronous suspens
+ion>
+#9      WebBuilder.bu
+ildWeb (package:flutt
+er_tools/src/web/comp
+ile.dart:94:34)
+<asynchronous suspens
+ion>
+#10     BuildWebComma
+nd.runCommand (packag
+e:flutter_tools/src/c
+ommands/build_web.dar
+t:296:5)
+<asynchronous suspens
+ion>
+#11     FlutterComman
+d.run.<anonymous clos
+ure> (package:flutter
+_tools/src/runner/flu
+tter_command.dart:155
+9:27)
+<asynchronous suspens
+ion>
+#12     AppContext.ru
+n.<anonymous closure>
+ (package:flutter_too
+ls/src/base/context.d
+art:154:19)
+<asynchronous suspens
+ion>
+#13     CommandRunner
+.runCommand (package:
+args/command_runner.d
+art:212:13)
+<asynchronous suspens
+ion>
+#14     FlutterComman
+dRunner.runCommand.<a
+nonymous closure> (pa
+ckage:flutter_tools/s
+rc/runner/flutter_com
+mand_runner.dart:487:
+9)
+<asynchronous suspens
+ion>
+#15     AppContext.ru
+n.<anonymous closure>
+ (package:flutter_too
+ls/src/base/context.d
+art:154:19)
+<asynchronous suspens
+ion>
+#16     FlutterComman
+dRunner.runCommand (p
+ackage:flutter_tools/
+src/runner/flutter_co
+mmand_runner.dart:422
+:5)
+<asynchronous suspens
+ion>
+#17     run.<anonymou
+s closure>.<anonymous
+ closure> (package:fl
+utter_tools/runner.da
+rt:104:11)
+<asynchronous suspens
+ion>
+#18     AppContext.ru
+n.<anonymous closure>
+ (package:flutter_too
+ls/src/base/context.d
+art:154:19)
+<asynchronous suspens
+ion>
+#19     main (package
+:flutter_tools/execut
+able.dart:103:3)
+<asynchronous suspens
+ion>
+
+Compiling lib\main.dart for the Web...                             47,4s
+Error: Failed to comp
+ile application for t
+he Web.

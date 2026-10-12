@@ -1,0 +1,283 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    // Kullanıcı giriş yapmış mı?
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Kullanıcı kimliği
+    function userId() {
+      return request.auth.uid;
+    }
+    
+    // Sadece belirtilen alanlar değişiyor mu?
+    function onlyAllowedFields(allowedFields) {
+      return request.resource.data.keys().hasOnly(allowedFields);
+    }
+    
+    // Belirli bir alan değişmedi mi?
+    function fieldUnchanged(field) {
+      return !request.resource.data.keys().hasAny([field]) 
+        || request.resource.data[field] == resource.data[field];
+    }
+    
+    // ============================================
+    // APPOINTMENTS COLLECTION
+    // ============================================
+    match /appointments/{appointmentId} {
+      
+      // OKUMA KURALLARI
+      allow read: if isSignedIn() && (
+        // Müşteri sadece kendi randevularını görebilir
+        resource.data.customerId == userId()
+        ||
+        // Berber sadece kendine atanan randevuları görebilir
+        resource.data.barberId == userId()
+      );
+      
+      // OLUŞTURMA KURALLARI
+      allow create: if isSignedIn()
+        // Sadece müşteriler randevu oluşturabilir
+        && request.resource.data.customerId == userId()
+        // Gerekli alanlar mevcut olmalı
+        && request.resource.data.keys().hasAll([
+          'customerId', 'barberId', 'date', 'time', 'status', 'createdAt'
+        ])
+        // Status başlangıçta "pending" olmalı
+        && request.resource.data.status == 'pending'
+        // createdAt sunucu zamanı olmalı
+        && request.resource.data.createdAt == request.time
+        // isEvaluated başlangıçta false olmalı
+        && (!request.resource.data.keys().hasAny(['isEvaluated']) 
+            || request.resource.data.isEvaluated == false);
+      
+      // GÜNCELLEME KURALLARI
+      allow update: if isSignedIn() && (
+        (
+          // MÜŞTERİ GÜNCELLEMELERİ
+          resource.data.customerId == userId()
+          // Müşteri sadece belirli alanları güncelleyebilir
+          && onlyAllowedFields(['customerId', 'barberId', 'date', 'time', 
+                                'status', 'createdAt', 'updatedAt'])
+          // customerId değiştirilemez
+          && fieldUnchanged('customerId')
+          // barberId değiştirilemez
+          && fieldUnchanged('barberId')
+          // createdAt değiştirilemez
+          && fieldUnchanged('createdAt')
+          // Status geçişleri: sadece iptal edebilir (pending/approved -> cancelled)
+          && (
+            (resource.data.status == 'pending' && request.resource.data.status == 'cancelled')
+            || (resource.data.status == 'approved' && request.resource.data.status == 'cancelled')
+          )
+        )
+        ||
+        (
+          // BERBER GÜNCELLEMELERİ
+          resource.data.barberId == userId()
+          // Berber sadece status değiştirebilir
+          && onlyAllowedFields(['customerId', 'barberId', 'date', 'time', 
+                                'status', 'createdAt', 'updatedAt', 
+                                'isEvaluated', 'evaluatedAt'])
+          // customerId değiştirilemez
+          && fieldUnchanged('customerId')
+          // barberId değiştirilemez
+          && fieldUnchanged('barberId')
+          // date değiştirilemez
+          && fieldUnchanged('date')
+          // time değiştirilemez
+          && fieldUnchanged('time')
+          // createdAt değiştirilemez
+          && fieldUnchanged('createdAt')
+          // Geçerli status geçişleri:
+          // pending -> approved | cancelled
+          // approved -> completed
+          && (
+            (resource.data.status == 'pending' && 
+              (request.resource.data.status == 'approved' || request.resource.data.status == 'cancelled'))
+            || (resource.data.status == 'approved' && request.resource.data.status == 'completed')
+          )
+        )
+        ||
+        (
+          // DEĞERLENDİRME SİSTEMİ - EVALUATION SERVICE İÇİN
+          // Sadece transaction içinde isEvaluated güncellenebilir
+          resource.data.customerId == userId()
+          && resource.data.status == 'completed'
+          && request.resource.data.isEvaluated == true
+          && resource.data.isEvaluated == false
+          // Sadece isEvaluated ve evaluatedAt değişebilir
+          && onlyAllowedFields(['customerId', 'barberId', 'date', 'time', 
+                                'status', 'createdAt', 'isEvaluated', 'evaluatedAt'])
+          && fieldUnchanged('customerId')
+          && fieldUnchanged('barberId')
+          && fieldUnchanged('date')
+          && fieldUnchanged('time')
+          && fieldUnchanged('status')
+          && fieldUnchanged('createdAt')
+        )
+      );
+      
+      // SİLME YOK
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // EVALUATIONS COLLECTION
+    // ============================================
+    match /evaluations/{evaluationId} {
+      
+      // OKUMA KURALLARI
+      allow read: if isSignedIn() && (
+        // Müşteri sadece kendi değerlendirmelerini görebilir
+        resource.data.customerId == userId()
+        ||
+        // Berber sadece kendisi hakkındaki değerlendirmeleri görebilir
+        resource.data.barberId == userId()
+      );
+      
+      // OLUŞTURMA KURALLARI - SADECE EVALUATION SERVICE İÇİN
+      allow create: if isSignedIn()
+        // Sadece müşteriler değerlendirme oluşturabilir
+        && request.resource.data.customerId == userId()
+        // Gerekli alanlar
+        && request.resource.data.keys().hasAll([
+          'customerId', 'barberId', 'appointmentId', 'rating', 'createdAt'
+        ])
+        // Sadece izin verilen alanlar
+        && onlyAllowedFields(['customerId', 'barberId', 'appointmentId', 
+                              'rating', 'comment', 'createdAt'])
+        // Rating 1-5 arası olmalı
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        // createdAt sunucu zamanı olmalı
+        && request.resource.data.createdAt == request.time
+        // Appointment mevcut ve completed olmalı (transaction kontrolü)
+        && exists(/databases/$(database)/documents/appointments/$(request.resource.data.appointmentId))
+        && get(/databases/$(database)/documents/appointments/$(request.resource.data.appointmentId)).data.status == 'completed'
+        // Appointment henüz değerlendirilmemiş olmalı
+        && get(/databases/$(database)/documents/appointments/$(request.resource.data.appointmentId)).data.isEvaluated == false;
+      
+      // GÜNCELLEME VE SİLME YOK - Değerlendirmeler immutable
+      allow update: if false;
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // BARBERS COLLECTION
+    // ============================================
+    match /barbers/{barberId} {
+      
+      // OKUMA KURALLARI
+      allow read: if isSignedIn();
+      
+      // OLUŞTURMA KURALLARI
+      allow create: if isSignedIn()
+        // Sadece kendi profilini oluşturabilir
+        && barberId == userId()
+        // Gerekli alanlar
+        && request.resource.data.keys().hasAll(['uid', 'createdAt'])
+        // uid doğru olmalı
+        && request.resource.data.uid == userId()
+        // createdAt sunucu zamanı olmalı
+        && request.resource.data.createdAt == request.time
+        // Rating alanları varsa başlangıç değerleri doğru olmalı
+        && (!request.resource.data.keys().hasAny(['ratingCount']) 
+            || request.resource.data.ratingCount == 0)
+        && (!request.resource.data.keys().hasAny(['ratingTotal']) 
+            || request.resource.data.ratingTotal == 0);
+      
+      // GÜNCELLEME KURALLARI
+      allow update: if isSignedIn() && (
+        (
+          // BERBER KENDİ PROFİLİNİ GÜNCELLEYEBİLİR
+          barberId == userId()
+          // uid değiştirilemez
+          && fieldUnchanged('uid')
+          // createdAt değiştirilemez
+          && fieldUnchanged('createdAt')
+          // RATİNG ALANLARI DEĞİŞTİRİLEMEZ - sadece evaluation transaction
+          && fieldUnchanged('ratingCount')
+          && fieldUnchanged('ratingTotal')
+        )
+        ||
+        (
+          // EVALUATİON SİSTEMİ - TRANSACTION İÇİN
+          // Rating alanları sadece transaction ile güncellenebilir
+          // Bu durumda müşteri evaluation oluşturuyordur
+          request.resource.data.ratingCount == resource.data.ratingCount + 1
+          && request.resource.data.ratingTotal > resource.data.ratingTotal
+          && request.resource.data.ratingTotal <= resource.data.ratingTotal + 5
+          // Diğer alanlar değişmemeli
+          && fieldUnchanged('uid')
+          && fieldUnchanged('createdAt')
+          && fieldUnchanged('email')
+          && fieldUnchanged('salonName')
+          && fieldUnchanged('phone')
+          && fieldUnchanged('address')
+          && fieldUnchanged('isActive')
+        )
+      );
+      
+      // SİLME YOK
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // NOTIFICATIONS COLLECTION
+    // ============================================
+    match /notifications/{notificationId} {
+      
+      // OKUMA KURALLARI
+      allow read: if isSignedIn()
+        // Sadece kendi bildirimlerini görebilir
+        && resource.data.userId == userId();
+      
+      // OLUŞTURMA KURALLARI - Backend/Cloud Functions için
+      allow create: if false; // İstemci tarafından oluşturulamaz
+      
+      // GÜNCELLEME KURALLARI - Sadece okundu işaretleme
+      allow update: if isSignedIn()
+        && resource.data.userId == userId()
+        // Sadece isRead ve updatedAt değişebilir
+        && onlyAllowedFields(['userId', 'type', 'message', 'appointmentId', 
+                              'createdAt', 'isRead', 'updatedAt'])
+        // Diğer alanlar değişmemeli
+        && fieldUnchanged('userId')
+        && fieldUnchanged('type')
+        && fieldUnchanged('message')
+        && fieldUnchanged('appointmentId')
+        && fieldUnchanged('createdAt')
+        // isRead true yapılabilir
+        && request.resource.data.isRead == true;
+      
+      // SİLME KURALLARI
+      allow delete: if isSignedIn()
+        && resource.data.userId == userId();
+    }
+    
+    // ============================================
+    // USERS COLLECTION (eğer varsa)
+    // ============================================
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && userId == request.auth.uid;
+      allow update: if isSignedIn() && userId == request.auth.uid;
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // VARSAYILAN: HER ŞEY YASAKLI
+    // ============================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
