@@ -130,8 +130,8 @@ kestirmeapp/
 cd kestirmeapp
 flutter pub get
 
-# Yapay zekâ anahtarı: kestirmeapp/assets/.env dosyasına yazın
-# GROQ_API_KEY=buraya_kendi_anahtarınız
+# Yapay zekâ anahtarı: assets/.env.example dosyasını assets/.env adıyla kopyalayıp kendi anahtarınızı yazın
+# (flutter run bu dosya olmadan derlenmez)
 
 flutter run
 ```
@@ -142,7 +142,7 @@ Kendi Firebase projenizi kullanacaksanız `flutterfire configure` ile `lib/fireb
 
 ## ⚠️ Bilinen eksikler / yapılacaklar
 
-- **Güvenlik:** `assets/.env` (Groq anahtarı) şu an depoda duruyor. Anahtarı yenileyip dosyayı depodan çıkarmak gerekir. Uygulamanın içine konan anahtar, uygulamayı kuran herkes tarafından çıkarılabilir; kalıcı çözüm yapay zekâ isteğini kendi sunucumuzdan geçirmektir.
+- **Güvenlik:** `assets/.env` (Groq anahtarı) artık depoda yok (`.gitignore`'da); örnek dosya `assets/.env.example`. Uygulamanın içine konan anahtar, uygulamayı kuran herkes tarafından çıkarılabilir; kalıcı çözüm yapay zekâ isteğini kendi sunucumuzdan geçirmektir.
 - **Güvenlik kuralları:** `firestore.rules` kodla uyumlu hâle getirildi (bildirim, randevu silme, `reviews`). Dosya Firebase Console > Firestore > Rules bölümüne **elle yüklenmelidir**; Firebase'deki eski deneme kuralları süresi dolduğu için tüm istekleri reddeder. Yeni kurallar henüz gerçek kullanımda tam denenmedi.
 - **Çift randevu kontrolü:** Müşteri başkasının randevusunu okuyamadığı için çakışma kontrolü şu an etkisiz kalabilir; kalıcı çözüm sunucu tarafında yapılmalı.
 - **Test amaçlı misafir girişi:** `kMisafirGirisiAcik` ([auth_gate_page.dart](kestirmeapp/lib/pages/auth_gate_page.dart)) açıkken "Müşteri" kartı otomatik misafir (anonim) girişi yapar ve berber sayfasında "Misafir Berber (Enes)" düğmesi görünür. Bu düğme için Firebase'de **Anonymous** girişi açık olmalı ve uygulama `flutter run --dart-define=ENES_SIFRE=1234567` ile başlatılmalıdır (enes123@gmail.com test hesabının şifresi; koda yazılmaz, yalnızca komutla verilir). Yayına çıkmadan önce `false` yapın.
