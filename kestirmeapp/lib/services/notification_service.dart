@@ -27,16 +27,22 @@ class NotificationService {
   }) async {
     try {
       // Idempotent check: Aynı randevu + type için bildirim var mı?
-      final existing = await _notificationsCollection
-          .where('userId', isEqualTo: userId)
-          .where('appointmentId', isEqualTo: appointmentId)
-          .where('type', isEqualTo: type)
-          .limit(1)
-          .get();
+      // Başkasının bildirimlerini okuma izni olmadığı için kontrol yapılamazsa
+      // (güvenlik kuralları) bildirim yine de oluşturulur.
+      try {
+        final existing = await _notificationsCollection
+            .where('userId', isEqualTo: userId)
+            .where('appointmentId', isEqualTo: appointmentId)
+            .where('type', isEqualTo: type)
+            .limit(1)
+            .get();
 
-      if (existing.docs.isNotEmpty) {
-        debugPrint('Notification already exists: $type for appointment $appointmentId');
-        return; // Duplicate, oluşturma
+        if (existing.docs.isNotEmpty) {
+          debugPrint('Notification already exists: $type for appointment $appointmentId');
+          return; // Duplicate, oluşturma
+        }
+      } on FirebaseException catch (e) {
+        if (e.code != 'permission-denied') rethrow;
       }
 
       // Yeni bildirim oluştur - title ve body formatında

@@ -3,6 +3,8 @@ import '../widgets/animated_premium_background.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'customer_auth_page.dart';
 import 'barber_auth_page.dart';
+import 'auth_gate_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// Ultra Premium Auth Selection Page
 /// Müşteri veya Berber seçimi yapılan sayfa
@@ -121,11 +123,25 @@ class AuthSelectionPage extends StatelessWidget {
                               colors: [Color(0xFF00D4FF), Color(0xFF00FF88)],
                             ),
                             shadowColor: const Color(0xFF00D4FF),
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const CustomerAuthPage()),
-                            ),
+                            onTap: () => kMisafirGirisiAcik
+                                ? _misafirMusteriGirisi(context)
+                                : Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const CustomerAuthPage()),
+                                  ),
                           ).animate().fadeIn(delay: 600.ms).slideX(begin: -0.3),
+
+                          if (kMisafirGirisiAcik)
+                            TextButton(
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const CustomerAuthPage()),
+                              ),
+                              child: Text(
+                                'Hesabımla müşteri girişi yap',
+                                style: TextStyle(color: Colors.white.withOpacity(0.6)),
+                              ),
+                            ),
                           
                           const SizedBox(height: 24),
                           
@@ -169,6 +185,24 @@ class AuthSelectionPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// GEÇİCİ (test): Müşteri kartına basınca otomatik misafir (anonim) giriş yapar.
+  /// Giriş olunca AuthGatePage kullanıcıyı müşteri paneline taşır.
+  Future<void> _misafirMusteriGirisi(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Misafir girişi yapılamadı. Firebase > Authentication > Sign-in method bölümünde "Anonymous" açık olmalı. ($e)',
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildSelectionCard({

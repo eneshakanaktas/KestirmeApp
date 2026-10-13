@@ -144,7 +144,7 @@ class CustomerHomePage extends StatelessWidget {
               return const Center(child: CircularProgressIndicator(color: Color(0xFF00D4FF)));
             }
             if (snapshot.hasError) {
-              return const Center(child: Text('Hata oluştu', style: TextStyle(color: Colors.white)));
+              return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Hata oluştu: ${snapshot.error}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white))));
             }
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
               return Center(

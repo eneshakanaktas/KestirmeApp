@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/animated_premium_background.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'auth_gate_page.dart';
 
 /// Ultra Premium Berber Giriş Sayfası
 class BarberAuthPage extends StatefulWidget {
@@ -80,6 +81,66 @@ class _BarberAuthPageState extends State<BarberAuthPage> {
     } catch (e) {
       setState(() {
         _errorMessage = 'Bir hata oluştu: $e';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  /// GEÇİCİ (test): "Misafir Berber" = gerçek enes123@gmail.com berber hesabı.
+  /// Şifre koda yazılmaz; uygulama şu şekilde çalıştırılır:
+  ///   flutter run -d chrome --dart-define=ENES_SIFRE=hesabin_sifresi
+  static const String _enesEmail = 'enes123@gmail.com';
+  static const String _enesSifre = String.fromEnvironment('ENES_SIFRE');
+
+  Future<void> _misafirBerberGirisi() async {
+    if (_enesSifre.isEmpty) {
+      setState(() {
+        _errorMessage =
+            'Misafir berber şifresi tanımlı değil. Uygulamayı --dart-define=ENES_SIFRE=... ile başlatın.';
+      });
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _enesEmail,
+        password: _enesSifre,
+      );
+      final uid = credential.user!.uid;
+
+      // Salon kaydı yoksa oluştur (müşteriler salonu listede görebilsin)
+      final ref = FirebaseFirestore.instance.collection('barbers').doc(uid);
+      final doc = await ref.get();
+      if (!doc.exists) {
+        await ref.set({
+          'uid': uid,
+          'email': _enesEmail,
+          'salonName': 'ENES KUAFÖR',
+          'phone': '',
+          'address': '',
+          'isActive': true,
+          'ratingCount': 0,
+          'ratingTotal': 0,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/auth-gate', (route) => false);
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = 'Misafir berber girişi yapılamadı: ${_getErrorMessage(e.code)}';
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Misafir berber girişi yapılamadı: $e';
       });
     } finally {
       if (mounted) {
@@ -421,6 +482,21 @@ class _BarberAuthPageState extends State<BarberAuthPage> {
                   
                   const SizedBox(height: 24),
                   
+                  if (kMisafirGirisiAcik)
+                    OutlinedButton.icon(
+                      onPressed: _isLoading ? null : _misafirBerberGirisi,
+                      icon: const Icon(Icons.person_outline, color: Color(0xFFFFD700)),
+                      label: const Text(
+                        'Misafir Berber (Enes) Olarak Gir',
+                        style: TextStyle(color: Color(0xFFFFD700), fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFFFD700)),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                    ).animate().fadeIn(delay: 500.ms),
+
                   TextButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: Icon(Icons.arrow_back, color: Colors.white.withOpacity(0.6)),

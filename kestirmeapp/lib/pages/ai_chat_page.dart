@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../utils/salon_name_helper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/groq_service.dart';
@@ -266,8 +267,22 @@ Nasıl yardımcı olabilirim?''',
         
         // Salon adına göre berberi bul (case-insensitive)
         final targetName = intent.barberName!.toLowerCase().trim();
-        
+
+        // Önce salon adına karşılık gelen sabit e-postaya sahip gerçek berberi dene
+        // (aynı adlı başka kayıtlar varsa yanlış berbere randevu gitmesin)
+        final mappedEmail = SalonNameHelper.getEmailFromSalonName(intent.barberName);
+        if (mappedEmail != null) {
+          for (var doc in barbersSnapshot.docs) {
+            final email = (doc.data()['email'] as String?)?.toLowerCase().trim();
+            if (email == mappedEmail) {
+              barberId = doc.id;
+              break;
+            }
+          }
+        }
+
         for (var doc in barbersSnapshot.docs) {
+          if (barberId != null) break;
           final data = doc.data();
           final salonName = (data['salonName'] as String?)?.toLowerCase().trim() ?? '';
           

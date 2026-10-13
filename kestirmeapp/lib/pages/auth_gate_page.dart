@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/user_service.dart';
 import '../widgets/animated_premium_background.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -8,6 +9,10 @@ import 'barber_home_page.dart';
 import 'customer_auth_page.dart';
 
 import 'auth_selection_page.dart';
+
+/// GEÇİCİ (test): true iken "Müşteri" kartı otomatik misafir girişi yapar ve
+/// berber giriş sayfasında "Misafir Berber" düğmesi görünür. Kapatmak için false yapın.
+const bool kMisafirGirisiAcik = true;
 
 /// Authentication Gate - Kullanıcı oturumunu dinleyen ve rolüne göre yönlendiren sayfa
 /// Firebase authStateChanges() stream kullanarak gerçek zamanlı oturum takibi yapar
@@ -47,6 +52,20 @@ class AuthGatePage extends StatelessWidget {
 
         debugPrint('AuthGate: Kullanıcı giriş yapmış - ${user.email}');
         
+        // Misafir (anonim) kullanıcı: rolü e-postaya değil, barbers/{uid} kaydına göre belirle
+        if (kMisafirGirisiAcik && user.isAnonymous) {
+          return FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance.collection('barbers').doc(user.uid).get(),
+            builder: (context, barberSnap) {
+              if (barberSnap.connectionState == ConnectionState.waiting) {
+                return _buildLoadingScreen(theme, colorScheme, 'Bağlantı kuruluyor...');
+              }
+              final misafirBerber = barberSnap.data?.exists ?? false;
+              return misafirBerber ? const BarberHomePage() : const CustomerHomePage();
+            },
+          );
+        }
+
         // Kullanıcı giriş yapmış -> Rolünü kontrol et ve yönlendir
         return _buildRoleBasedNavigation(user, theme, colorScheme);
       },
